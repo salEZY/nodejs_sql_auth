@@ -1,12 +1,13 @@
 const express = require("express");
 const conn = require("../util/db");
+const auth = require("../util/auth");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
 const router = express.Router();
 
 // GET USERS
-router.get("/", (req, res, next) => {
+router.get("/", auth, (req, res, next) => {
   conn.query("SELECT * FROM users;", (err, results, fields) => {
     if (err) throw err;
     res.json({ message: "Sent!", data: results });
@@ -45,7 +46,7 @@ router.post("/register", async (req, res, next) => {
 
 // LOGIN USER
 router.post("/login", (req, res, next) => {
-  let { email, password, about } = req.body;
+  let { email, password } = req.body;
 
   try {
     conn.query(
@@ -61,13 +62,15 @@ router.post("/login", (req, res, next) => {
           token = jwt.sign(
             { email: results[0].email, id: results[0].id },
             process.env.SECRET,
-            { expiresIn: "2h" }
+            { expiresIn: "50d" }
           );
         } catch (err) {
           next(err);
         }
 
-        res.json({ user: results[0], token });
+        res
+          .header("Authorization", `Bearer ${token}`)
+          .json({ message: "Success", user: results[0], token });
       }
     );
   } catch (err) {
