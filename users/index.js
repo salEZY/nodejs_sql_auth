@@ -53,6 +53,9 @@ router.post("/login", (req, res, next) => {
       "SELECT * FROM users WHERE email = ?",
       [email],
       async (err, results, fields) => {
+        if (!results[0])
+          return res.status(404).json({ message: "USER DOES NOT EXIST!" });
+
         const isMatch = await bcrypt.compare(password, results[0].password);
         if (!isMatch)
           return res.status(403).json({ message: "PASSWORDS DO NOT MATCH" });
