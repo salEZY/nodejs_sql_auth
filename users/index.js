@@ -14,6 +14,24 @@ router.get("/", auth, (req, res, next) => {
   });
 });
 
+// GET ONE USER
+router.get("/:id", (req, res, next) => {
+  try {
+    conn.query(
+      "SELECT * FROM users WHERE id = ?;",
+      [req.params.id],
+      (err, results, fields) => {
+        if (err) next(err);
+        if (results.length < 1)
+          return res.status(404).json({ message: "NOT FOUND" });
+        res.json({ message: "Sent!", data: results[0] });
+      }
+    );
+  } catch (err) {
+    next(err);
+  }
+});
+
 // REGISTER USER
 router.post("/register", async (req, res, next) => {
   let { email, password, about } = req.body;
@@ -23,7 +41,7 @@ router.post("/register", async (req, res, next) => {
 
   try {
     conn.query(
-      "INSERT INTO users (email, password, about, created_at) VALUES (?,?,?,?)",
+      "INSERT INTO users (email, password, about, created_at) VALUES (?,?,?,?);",
       [email, password, about, created_at],
       (err, rows, fields) => {
         if (err) next(err);
@@ -50,7 +68,7 @@ router.post("/login", (req, res, next) => {
 
   try {
     conn.query(
-      "SELECT * FROM users WHERE email = ?",
+      "SELECT * FROM users WHERE email = ?;",
       [email],
       async (err, results, fields) => {
         if (!results[0])
